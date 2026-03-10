@@ -7,28 +7,19 @@
         body { background: black; color: white; font-family: Arial, sans-serif; margin: 0; line-height: 1.6; }
         a { color: yellow; text-decoration: none; }
         header { text-align: center; padding: 30px; border-bottom: 2px solid yellow; }
-        
         nav { background: #111; padding: 10px; text-align: center; position: sticky; top: 0; z-index: 100; border-bottom: 1px solid #333; }
         .nav-btn { background: none; border: 1px solid yellow; color: yellow; padding: 8px 20px; cursor: pointer; margin: 0 5px; border-radius: 5px; font-weight: bold; }
         .nav-btn:hover { background: yellow; color: black; }
-
-        .view { display: none; padding: 20px; animation: fadeIn 0.5s; }
+        .view { display: none; padding: 20px; }
         .active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
         .card { background: #111; padding: 20px; margin: 20px auto; max-width: 800px; border-radius: 10px; border: 1px solid #222; }
         h2 { color: yellow; }
-        
         button { background: yellow; color: black; border: none; padding: 12px 25px; cursor: pointer; border-radius: 5px; font-weight: bold; }
         button:disabled { background: #444; color: #888; cursor: not-allowed; }
-
         input, textarea { width: 100%; padding: 12px; margin: 10px 0; background: #222; color: white; border: 1px solid yellow; box-sizing: border-box; }
-
-        /* Roue */
         #wheelContainer { text-align: center; position: relative; margin: 30px auto; width: 320px; }
         #pointer { font-size: 40px; color: yellow; position: absolute; top: -35px; left: 50%; transform: translateX(-50%); z-index: 10; }
         #wheel { width: 300px; height: 300px; border-radius: 50%; border: 8px solid yellow; position: relative; overflow: hidden; transition: transform 4s cubic-bezier(0.15, 0, 0.15, 1); background: #333; }
-        
         .slice { position: absolute; width: 100%; height: 100%; left: 0; top: 0; clip-path: polygon(50% 50%, 50% 0%, 100% 20%); transform-origin: 50% 50%; }
         .slice:nth-child(1) { transform: rotate(0deg); background: #e74c3c; } 
         .slice:nth-child(2) { transform: rotate(60deg); background: #2ecc71; } 
@@ -36,9 +27,7 @@
         .slice:nth-child(4) { transform: rotate(180deg); background: #2ecc71; } 
         .slice:nth-child(5) { transform: rotate(240deg); background: #e74c3c; } 
         .slice:nth-child(6) { transform: rotate(300deg); background: #e74c3c; } 
-        .slice span { position: absolute; top: 15%; right: 25%; transform: rotate(30deg); font-weight: bold; font-size: 11px; }
-
-        #timer { color: #ffa500; font-weight: bold; margin-top: 10px; font-size: 14px; }
+        #timer { color: #ffa500; font-weight: bold; margin-top: 10px; }
         #result { font-size: 22px; font-weight: bold; margin-top: 15px; }
     </style>
 </head>
@@ -56,17 +45,13 @@
 
 <div id="user-view" class="view active">
     <section class="card">
-        <h2>🎡 Roue de la chance (5% de chance)</h2>
-        <p>Tentez de gagner un lot exceptionnel toutes les 15 heures !</p>
+        <h2>🎡 Roue de la chance (10% de chance total)</h2>
         <div id="wheelContainer">
             <div id="pointer">▼</div>
             <div id="wheel">
-                <div class="slice"><span>PERDU</span></div>
-                <div class="slice"><span>GAGNÉ</span></div>
-                <div class="slice"><span>PERDU</span></div>
-                <div class="slice"><span>GAGNÉ</span></div>
-                <div class="slice"><span>PERDU</span></div>
-                <div class="slice"><span>PERDU</span></div>
+                <div class="slice"></div><div class="slice"></div>
+                <div class="slice"></div><div class="slice"></div>
+                <div class="slice"></div><div class="slice"></div>
             </div>
         </div>
         <div style="text-align:center">
@@ -81,20 +66,20 @@
         <input id="discord" placeholder="Pseudo Discord">
         <input id="minecraft" placeholder="Pseudo Minecraft">
         <textarea id="reason" placeholder="Votre demande..."></textarea>
-        <button onclick="createTicket()">Envoyer</button>
+        <button onclick="createTicket()">Envoyer le ticket</button>
     </section>
 </div>
 
 <div id="admin-view" class="view">
     <section class="card">
-        <h2>🛠 Panel Admin (Code: 7291)</h2>
+        <h2>🛠 Panel Admin</h2>
         <div id="tickets-list"></div>
         <button onclick="showView('user-view')">Retour</button>
     </section>
 </div>
 
 <script>
-    const SPIN_COOLDOWN = 15 * 60 * 60 * 1000; // 15 heures en millisecondes
+    const SPIN_COOLDOWN = 15 * 60 * 60 * 1000;
 
     function showView(id) {
         document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
@@ -105,71 +90,47 @@
         if (prompt("Code Admin :") === "7291") showView('admin-view');
     }
 
-    // --- LOGIQUE DE LA ROUE ---
     let currentRotation = 0;
 
     function updateTimer() {
         const lastSpin = localStorage.getItem('lastSpin');
         const btn = document.getElementById("spinBtn");
         const timerTxt = document.getElementById("timer");
-
         if (lastSpin) {
             const timeLeft = SPIN_COOLDOWN - (Date.now() - parseInt(lastSpin));
             if (timeLeft > 0) {
                 btn.disabled = true;
-                const hours = Math.floor(timeLeft / (1000 * 60 * 60));
-                const mins = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
-                const secs = Math.floor((timeLeft % (1000 * 60)) / 1000);
-                timerTxt.innerText = `Prochain essai dans : ${hours}h ${mins}m ${secs}s`;
+                const h = Math.floor(timeLeft / 3600000);
+                const m = Math.floor((timeLeft % 3600000) / 60000);
+                const s = Math.floor((timeLeft % 60000) / 1000);
+                timerTxt.innerText = `Attente : ${h}h ${m}m ${s}s`;
                 setTimeout(updateTimer, 1000);
                 return;
             }
         }
         btn.disabled = false;
-        timerTxt.innerText = "La roue est prête !";
+        timerTxt.innerText = "Prêt !";
     }
 
     function spin() {
-        const btn = document.getElementById("spinBtn");
-        const res = document.getElementById("result");
-        const wheel = document.getElementById("wheel");
-
-        // 1. Déterminer le résultat (5% par case gagnée, il y en a 2, donc 10% de chance totale)
         const chance = Math.random() * 100;
-        let finalAngle = 0;
-        let isWin = false;
-
-        if (chance <= 10) { // GAGNÉ (5% + 5%)
-            isWin = true;
-            // Tomber sur 60° ou 180° (les cases vertes)
-            finalAngle = Math.random() > 0.5 ? 270 : 150; 
-        } else { // PERDU (90%)
-            // Tomber sur l'une des 4 cases rouges
-            const redAngles = [210, 330, 30, 90];
-            finalAngle = redAngles[Math.floor(Math.random() * redAngles.length)];
-        }
-
-        // Animation
+        let isWin = chance <= 10;
+        let finalAngle = isWin ? (Math.random() > 0.5 ? 90 : 210) : 30; 
         currentRotation += 1800 + (360 - (currentRotation % 360)) + finalAngle;
-        wheel.style.transform = `rotate(${currentRotation}deg)`;
-        
-        btn.disabled = true;
+        document.getElementById("wheel").style.transform = `rotate(${currentRotation}deg)`;
         localStorage.setItem('lastSpin', Date.now());
-        res.innerText = "Bonne chance...";
-
         setTimeout(() => {
-            res.innerHTML = isWin ? "<span style='color:#2ecc71'>🎉 GAGNÉ !</span>" : "<span style='color:#e74c3c'>❌ PERDU</span>";
+            document.getElementById("result").innerHTML = isWin ? "<span style='color:#2ecc71'>🎉 GAGNÉ !</span>" : "<span style='color:#e74c3c'>❌ PERDU</span>";
             updateTimer();
         }, 4000);
     }
 
-    // --- TICKETS ---
     let tickets = JSON.parse(localStorage.getItem('valdoria_tickets')) || [];
     function createTicket() {
         let d = document.getElementById("discord").value;
         let m = document.getElementById("minecraft").value;
         let r = document.getElementById("reason").value;
-        if(!d || !m || !r) return alert("Champs vides !");
+        if(!d || !m || !r) return alert("Remplis tout !");
         tickets.push({ d, m, r, date: new Date().toLocaleString() });
         localStorage.setItem('valdoria_tickets', JSON.stringify(tickets));
         alert("Ticket envoyé !");
@@ -180,9 +141,7 @@
         let cont = document.getElementById("tickets-list");
         cont.innerHTML = "";
         tickets.forEach((t, i) => {
-            cont.innerHTML += `<div style="border:1px solid yellow; padding:10px; margin-top:10px;">
-                ${t.date} - <b>${t.m}</b>: ${t.r} <button onclick="deleteTicket(${i})">X</button>
-            </div>`;
+            cont.innerHTML += `<div style="border:1px solid yellow; padding:10px; margin-top:10px;">${t.m} : ${t.r} <button onclick="deleteTicket(${i})">X</button></div>`;
         });
     }
 
@@ -192,10 +151,8 @@
         updateTicketsDisplay();
     }
 
-    // Initialisation
     updateTimer();
     updateTicketsDisplay();
 </script>
-
 </body>
 </html>
